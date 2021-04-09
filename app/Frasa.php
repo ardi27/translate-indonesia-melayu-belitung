@@ -8,4 +8,5 @@ class Frasa extends Model
 {
     //
     protected $table = "frasa";
+    
 }
