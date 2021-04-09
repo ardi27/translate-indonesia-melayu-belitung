@@ -96,39 +96,39 @@ class TranslateController extends Controller
                         $output[] = $kata['arti'] . $kata['akhiran'];
                     } else {
                         if ($kata['is_basicword'] == null) {
-                            $leven = [];
-                            foreach ($data as $row) {
-                                $cekKata = [];
-                                for ($i = 0; $i < strlen($kata['arti']); $i++) {
-                                    array_push($cekKata, $kata['arti'][$i]);
-                                }
+                            // $leven = [];
+                            // foreach ($data as $row) {
+                            //     $cekKata = [];
+                            //     for ($i = 0; $i < strlen($kata['arti']); $i++) {
+                            //         array_push($cekKata, $kata['arti'][$i]);
+                            //     }
                                     
-                                // // array_splice($cekKata, 0, 0, "*");
-                                // // array_push($cekKata, "*");
-                                // $cekKata = implode("", $cekKata);
-                                // // $cekKata = substr($cekKata, 1,);
-                                // dd($cekKata);
-                                if ($kata['arti'] != "") {
-                                    if (levenshtein($kata['arti'], $row->kdNama) < 3) {
-                                        $cek = 1;
+                            //     // // array_splice($cekKata, 0, 0, "*");
+                            //     // // array_push($cekKata, "*");
+                            //     // $cekKata = implode("", $cekKata);
+                            //     // // $cekKata = substr($cekKata, 1,);
+                            //     // dd($cekKata);
+                            //     if ($kata['arti'] != "") {
+                            //         if (levenshtein($kata['arti'], $row->kdNama) < 3) {
+                            //             $cek = 1;
                                            
                             
-                                        foreach ($cekKata as $char) {
-                                            if (strpos($row->kdNama, $char) === false) {
-                                                $cek = 0;
-                                            }
-                                        }
+                            //             foreach ($cekKata as $char) {
+                            //                 if (strpos($row->kdNama, $char) === false) {
+                            //                     $cek = 0;
+                            //                 }
+                            //             }
                                         
-                                        if ($cek == 1) {
-                                            array_push($leven, $row->kdArti);
-                                        }
-                                    }
-                                }
-                            }
-                            // dd($leven);
-                            if (count($leven) > 0) {
-                                $kata['arti'] = $leven[0];
-                            }  
+                            //             if ($cek == 1) {
+                            //                 array_push($leven, $row->kdArti);
+                            //             }
+                            //         }
+                            //     }
+                            // }
+                            // // dd($leven);
+                            // if (count($leven) > 0) {
+                            //     $kata['arti'] = $leven[0];
+                            // }  
                         // echo '<b>proses Leven</b>'."<pre>".print_r($leven,true)."</pre>";
                         }
 

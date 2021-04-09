@@ -17,4 +17,5 @@ Route::get('/', 'TranslateController@index');
 Route::get('/daftar-kata','DaftarKataController@index');
 Route::get('/proses', 'TranslateController@proses');
 Route::get('/imbuhan','ImbuhanController@index');
+Route::post('/daftar-kata/update/{id}','DaftarKataController@update');
 Route::get('/debug', 'TranslateController@debug');
