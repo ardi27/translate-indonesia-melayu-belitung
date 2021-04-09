@@ -17,3 +17,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+Route::prefix('kata')->group(function () {
+    Route::get('/', 'api\ApiController@index');
+    Route::post('/store', 'api\ApiController@store');
+});

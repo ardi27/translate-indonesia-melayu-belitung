@@ -14,8 +14,15 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', 'TranslateController@index');
-Route::get('/daftar-kata','DaftarKataController@index');
 Route::get('/proses', 'TranslateController@proses');
-Route::get('/imbuhan','ImbuhanController@index');
-Route::post('/daftar-kata/update/{id}','DaftarKataController@update');
+Route::prefix('daftar-kata')->group(function () {
+    Route::get('/', 'DaftarKataController@index');
+    Route::post('/update/{id}', 'DaftarKataController@update');
+    Route::post('/tambah', 'DaftarKataController@store');
+});
+Route::prefix('imbuhan')->group(function () {
+    Route::get('/', 'ImbuhanController@index');
+    Route::post('/update/{id}', 'ImbuhanController@update');
+    Route::post('/tambah', 'ImbuhanController@store');
+});
 Route::get('/debug', 'TranslateController@debug');

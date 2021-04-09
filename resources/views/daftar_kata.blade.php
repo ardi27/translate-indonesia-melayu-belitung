@@ -5,11 +5,19 @@
     {{session('success')}}
 </div>
 @endif
+@if($errors->any())
+<div class="alert alert-danger" role="alert">
+    {{$errors->first()}}
+</div>
+@endif
 <div class="card mx-5 my-5">
     <div class="row">
         <div class="col-md-12">
             <div class="card">
                 <div class="card-body">
+                    <button class="btn btn-info text-white float-right my-3" onclick="showModal()">
+                        Tambah
+                    </button>
                     <table class="table table-striped" id="data-table">
                         <thead>
                             <tr>
@@ -25,10 +33,12 @@
                                 <th scope="row">{{$key+1}}</th>
                                 <td>{{$kata->katadasar}}</td>
                                 <td>{{$kata->arti_kata}}</td>
-                                <td><button class="btn btn-warning text-white"
-                                        onclick="showModal({{$kata->id_katadasar}},'{{$kata->katadasar}}','{{$kata->arti_kata}}')">
+                                <td>
+                                    <button class="btn btn-warning text-white"
+                                        onclick="showModal({{json_encode($kata)}})">
                                         Update
-                                    </button></td>
+                                    </button>
+                                </td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -56,12 +66,12 @@
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="exampleInputEmail1">Kata Asli</label>
-                        <input type="text" class="form-control" name="katadasar" id="formKataAsli"
+                        <input type="text" required class="form-control" name="katadasar" id="formKataAsli"
                             aria-describedby="emailHelp" placeholder="Masukkan Kata Asli">
                     </div>
                     <div class="form-group">
                         <label for="exampleInputEmail1">Terjemahan</label>
-                        <input type="text" class="form-control" name="arti_kata" id="formTerjemahan"
+                        <input type="text" required class="form-control" name="arti_kata" id="formTerjemahan"
                             aria-describedby="emailHelp" placeholder="Masukkan Terjemahan">
                     </div>
                 </div>
@@ -80,12 +90,18 @@
     $('#data-table').DataTable();
 }
 );
- function showModal(id,kataAsli,artiKata){
-    document.getElementById('title').innerText=`Ubah ${kataAsli}`;
-    document.getElementById('formKataAsli').value=kataAsli;
-    document.getElementById('formTerjemahan').value=artiKata;
-    document.getElementById('formUpdate').action=`{{url('daftar-kata/update/${id}')}}`;
+ function showModal(json){
+    if(json==null||json==""){
+        document.getElementById('title').innerText=`Tambah Kata Dasar`;
+        document.getElementById('formUpdate').action=`{{url('daftar-kata/tambah')}}`;
+        $("#modalUpdate").modal();
+    }else{
+    document.getElementById('title').innerText=`Ubah ${json.katadasar}`;
+    document.getElementById('formKataAsli').value=json.katadasar;
+    document.getElementById('formTerjemahan').value=json.arti_kata;
+    document.getElementById('formUpdate').action=`{{url('daftar-kata/update/${json.id_katadasar}')}}`;
     $("#modalUpdate").modal();
+    }
     }
 </script>
 @endsection

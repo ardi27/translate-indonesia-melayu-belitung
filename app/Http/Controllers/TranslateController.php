@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Kata_Dasar;
 use App\Aturan;
 use App\Frasa;
@@ -19,12 +18,12 @@ class TranslateController extends Controller
     public function Proses(Request $request)
     {
         //proses tokenisasi
-        
+
         // echo '<b>Kalimat Melayu Riau</b>'."<pre>".print_r($request->kata,true)."</pre>";
         $kalimat = strtolower($request->kata);
-        
+
         // echo '<b>Proses Case Folding</b>'."<pre>".print_r($kalimat,true)."</pre>";
-        $token = explode(" ", TranslateController::simbol($kalimat));
+        $token = explode(" ", $this->simbol($kalimat));
 
         // echo '<b>proses token</b>'."<pre>".print_r($token,true)."</pre>";
         //hapus spasi setelah enter
@@ -60,29 +59,27 @@ class TranslateController extends Controller
                 $kondisi[$i] = true;
             }
         }
-        
+
         $output = array();
-        
-        
+
+
         if ($token[0] > "") {
             $j = 0;
             foreach ($token as  $value) {
 
                 $basicWords = array();
                 $data = Kata_Dasar::all();
-                
+
                 foreach ($data as $row) {
                     $basicWords[$row->kdNama] = $row->kdArti;
                 }
                 if ($kondisi[$j] == null || $kondisi[$j] == false) {
-                    $kata = TranslateController::stem($value);
-                    
-                } 
-                else {
+                    $kata = $this->stem($value);
+                } else {
                     $kata['awalan'] = "";
                     $kata['akhiran'] = "";
                     $kata['arti'] = $value;
-               
+
                     // echo "<pre>".'<b>Hasil = </b>'.print_r($kata['arti'],true)."</pre>";
                 }
 
@@ -90,7 +87,6 @@ class TranslateController extends Controller
                     if (preg_match("/[\,\?\.\:\!]/", $kata['arti'])) {
                         $output[count($output) - 1] = substr($output[count($output) - 1], 0, -1);
                         $output[] = $kata['arti'] . $kata['akhiran'] . " ";
-                        
                     } elseif (preg_match("/[\-\"\:]/", $kata['arti'])) {
                         $output[count($output) - 1] = substr($output[count($output) - 1], 0, -1);
                         $output[] = $kata['arti'] . $kata['akhiran'];
@@ -102,7 +98,7 @@ class TranslateController extends Controller
                             //     for ($i = 0; $i < strlen($kata['arti']); $i++) {
                             //         array_push($cekKata, $kata['arti'][$i]);
                             //     }
-                                    
+
                             //     // // array_splice($cekKata, 0, 0, "*");
                             //     // // array_push($cekKata, "*");
                             //     // $cekKata = implode("", $cekKata);
@@ -111,14 +107,14 @@ class TranslateController extends Controller
                             //     if ($kata['arti'] != "") {
                             //         if (levenshtein($kata['arti'], $row->kdNama) < 3) {
                             //             $cek = 1;
-                                           
-                            
+
+
                             //             foreach ($cekKata as $char) {
                             //                 if (strpos($row->kdNama, $char) === false) {
                             //                     $cek = 0;
                             //                 }
                             //             }
-                                        
+
                             //             if ($cek == 1) {
                             //                 array_push($leven, $row->kdArti);
                             //             }
@@ -129,7 +125,7 @@ class TranslateController extends Controller
                             // if (count($leven) > 0) {
                             //     $kata['arti'] = $leven[0];
                             // }  
-                        // echo '<b>proses Leven</b>'."<pre>".print_r($leven,true)."</pre>";
+                            // echo '<b>proses Leven</b>'."<pre>".print_r($leven,true)."</pre>";
                         }
 
                         $output[] = $kata['arti'] . $kata['akhiran'] . " ";
@@ -142,16 +138,15 @@ class TranslateController extends Controller
                     $output[] = $kata['awalan'] . $kata['arti'] . $kata['akhiran'] . " ";
                     //$output = $kata;
                 }
-                $j++;        
-        // echo '<b>Proses Stemming</b>'."<pre>".print_r($kata,true)."</pre>";     
+                $j++;
+                // echo '<b>Proses Stemming</b>'."<pre>".print_r($kata,true)."</pre>";     
             }
-           
         } else {
             $output[] = "Terjemahan Bahasa Indonesia";
         }
         // dd($kata);
-        
-        
+
+
         // echo '<b>Proses Terjemahan</b>'."<pre>".print_r(implode(' ',$output),true)."</pre>";
         return response()->json($output);
     }
@@ -211,20 +206,20 @@ class TranslateController extends Controller
         $suffix = '';
         $kataAsal = strtolower($kata);
 
-        if (TranslateController::cekKamus($kata)) {
+        if ($this->cekKamus($kata)) {
             return array('awalan' => '', 'akhiran' => '', 'result' => $kata, 'rules' => $rules, 'is_basicword' => true, 'arti' => $basicWords[$kata]);
         }
-        /* 1. TranslateController::Akhiran */
-        $kata = TranslateController::Akhiran($kata);
+        /* 1. $this->Akhiran */
+        $kata = $this->Akhiran($kata);
 
 
-        /* 2. TranslateController::awalan */
-        $kata = TranslateController::awalan($kata);
+        /* 2. $this->awalan */
+        $kata = $this->awalan($kata);
 
 
 
 
-        if (TranslateController::cekKamus($kata)) {
+        if ($this->cekKamus($kata)) {
             // Jika ada kembalikan
             if (count($prefix) > 1) {
                 if ($prefix[0] == 'ke' && $prefix[1] == 'ber') {
@@ -235,7 +230,7 @@ class TranslateController extends Controller
                     $temp = $prefix[0];
                     $prefix[0] = $prefix[1];
                     $prefix[1] = $temp;
-                }else if ($prefix[0] == 'ke' && $prefix[1] == 'be') {
+                } else if ($prefix[0] == 'ke' && $prefix[1] == 'be') {
                     $temp = $prefix[0];
                     $prefix[0] = $prefix[1];
                     $prefix[1] = $temp;
@@ -293,7 +288,7 @@ class TranslateController extends Controller
                 return array('awalan' => $prefix, 'akhiran' => $suffix, 'kata' => $kataAsal, 'result' => $kata, 'rules' => $rules, 'is_basicword' => true, 'arti' => $basicWords[$kata]);
             } //return array('input'=>$kataAsal,'result'=>$kata, 'is_basicword'=>true);
         } else {
-        
+
             // Jika tidak ada kembalikan "" atau $kataAsal sesuai kebutuhan
             return array('awalan' => '', 'akhiran' => '', 'result' => $kataAsal, 'arti' => $kataAsal, 'rules' => $rules, 'is_basicword' => false);
             //return array('input'=>$kataAsal,'result'=>$kata, 'is_basicword'=>false);
@@ -305,24 +300,24 @@ class TranslateController extends Controller
         global $rules;
         global $prefix;
         global $suffix;
-        
+
         $kataAsal = $kata;
         if (preg_match('/(an|eq|kan|e)$/i', $kata)) { // Cek Inflection Suffixes sementara lah problem contoh mengalah
 
             $kata__ = preg_replace('/(an|eq|kan|e)$/i', '', $kata);
-            if (TranslateController::cekKamus($kata__)) {
+            if ($this->cekKamus($kata__)) {
                 $akhir = str_replace($kata__, '', $kata);
-                $suffix = TranslateController::aturan($akhir);
+                $suffix = $this->aturan($akhir);
                 $rules[] = 'an|eq|kan|e -> hapus';
                 return $kata__; // Jika ada balik
             } else {
-                $__kata = TranslateController::awalan($kata);
-                if (TranslateController::cekKamus($__kata)) {
+                $__kata = $this->awalan($kata);
+                if ($this->cekKamus($__kata)) {
                     return $__kata;
                 }
                 $kata__ = preg_replace('/(an|eq|kan|e)$/i', '', $__kata);
-                $akhir = str_replace($kata__, '', $kata);
-                $suffix = TranslateController::aturan($akhir);
+                $akhir = str_replace($kata__, '', $__kata);
+                $suffix = $this->aturan($akhir);
                 $rules[] = 'an|eq|kan|e -> hapus';
                 return $kata__;
             }
@@ -336,126 +331,131 @@ class TranslateController extends Controller
         global $rules;
         global $prefix;
         $kataAsal = $kata;
-        
-                  
-        if (TranslateController::cekKamus($kata)) {
+
+
+        if ($this->cekKamus($kata)) {
             return $kata;
         }
 
         if (preg_match('/^(de|[ks]e)/i', $kata)) { // Jika di-,ke-,se-
             $__kata = preg_replace('/^(de|[ks]e)/i', '', $kata);
 
-            if (TranslateController::cekKamus($__kata)) {
+            if ($this->cekKamus($__kata)) {
                 $awal = str_replace($__kata, '', $kata);
-                $prefix[] = TranslateController::aturan($awal);
+                $prefix[] = $this->aturan($awal);
                 $rules[] = 'de|ke|se -> hapus';
                 return $__kata; // Jika ada balik
             }
             //$rules[] = '^di|ke|se -> hapus';
-            $__kata__ = TranslateController::awalan($__kata);
+            $__kata__ = $this->awalan($__kata);
 
-            if (TranslateController::cekKamus($__kata__)) {
+            if ($this->cekKamus($__kata__)) {
+                $awal = str_replace($__kata, '', $__kata);
+                $prefix[] = $this->aturan($awal);
                 return $__kata__;
             }
         }
-        if(preg_match('/^(nge)\S{1,}/',$kata)){ 						// Jika awalan “nge-”
-			if(preg_match('/^(nge)[mlrwy]\S{1,}/',$kata)){ 						
-				$__kata = preg_replace('/^(nge)/','',$kata);
-				
-				if(TranslateController::cekKamus($__kata)){	
+        if (preg_match('/^(nge)\S{1,}/', $kata)) {                         // Jika awalan “nge-”
+            if (preg_match('/^(nge)[mlrwy]\S{1,}/', $kata)) {
+                $__kata = preg_replace('/^(nge)/', '', $kata);
+
+                if ($this->cekKamus($__kata)) {
                     $awal = str_replace($__kata, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
-                    $rules[] = 'nge -> hapus';		
-					return $__kata; 							
-				}
-				$__kata__ = TranslateController::awalan($__kata);
-				if(TranslateController::cekKamus($__kata__)){
-                    $awal = str_replace($__kata__, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                    $prefix[] = $this->aturan($awal);
                     $rules[] = 'nge -> hapus';
-					return $__kata__;
-				}
-			}
+                    return $__kata;
+                }
+                $__kata__ = $this->awalan($__kata);
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata__, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
+                    $rules[] = 'nge -> hapus';
+                    return $__kata__;
+                }
+            }
 
 
-			if(preg_match('/^(ngen)\S{1,}/',$kata)){ 					
-				$__kata = preg_replace('/^(ngen)/','',$kata);
-				if(TranslateController::cekKamus($__kata)){	
-                    $awal = str_replace($__kata,'', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
-                    $rules[] = 'ngen -> hapus';		
-					return $__kata; 							
-				}
-				$__kata__ = TranslateController::awalan($__kata);
-				if(TranslateController::cekKamus($__kata__)){
-                    $awal = str_replace($__kata__, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+            if (preg_match('/^(ngen)\S{1,}/', $kata)) {
+                $__kata = preg_replace('/^(ngen)/', '', $kata);
+                if ($this->cekKamus($__kata)) {
+                    $awal = str_replace($__kata, '', $kata);
+                    $prefix[] = $this->aturan($awal);
                     $rules[] = 'ngen -> hapus';
-					return $__kata__;
-				}
-			}
+                    return $__kata;
+                }
+                $__kata__ = $this->awalan($__kata);
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata__, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
+                    $rules[] = 'ngen -> hapus';
+                    return $__kata__;
+                }
+            }
 
 
-			if(preg_match('/^(ngem)[b]\S{1,}/',$kata)){ 					
-				$__kata = preg_replace('/^(ngem)/','',$kata);
-				if(TranslateController::cekKamus($__kata)){	
+            if (preg_match('/^(ngem)[b]\S{1,}/', $kata)) {
+                $__kata = preg_replace('/^(ngem)/', '', $kata);
+                if ($this->cekKamus($__kata)) {
                     $awal = str_replace($__kata, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
-                    $rules[] = 'ngem -> hapus';		
-					return $__kata; 							
-				}
-				$__kata__ = TranslateController::awalan($__kata);
-				if(TranslateController::cekKamus($__kata__)){
-                    $awal = str_replace($__kata__, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                    $prefix[] = $this->aturan($awal);
                     $rules[] = 'ngem -> hapus';
-					return $__kata__;
-				}
-			}
-			if(preg_match('/^(ngeng)[g]\S{1,}/',$kata)){ 					
-				$__kata = preg_replace('/^(ngeng)/','',$kata);
-				if(TranslateController::cekKamus($__kata)){	
+                    return $__kata;
+                }
+                $__kata__ = $this->awalan($__kata);
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata__, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
+                    $rules[] = 'ngem -> hapus';
+                    return $__kata__;
+                }
+            }
+            if (preg_match('/^(ngeng)[g]\S{1,}/', $kata)) {
+                $__kata = preg_replace('/^(ngeng)/', '', $kata);
+                if ($this->cekKamus($__kata)) {
                     $awal = str_replace($__kata, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
-                    $rules[] = 'ngeng -> hapus';		
-					return $__kata; 							
-				}
-				$__kata__ = TranslateController::awalan($__kata);
-				if(TranslateController::cekKamus($__kata__)){
-                    $awal = str_replace($__kata, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                    $prefix[] = $this->aturan($awal);
                     $rules[] = 'ngeng -> hapus';
-					return $__kata__;
-				}
-			}	
-
-		}
+                    return $__kata;
+                }
+                $__kata__ = $this->awalan($__kata);
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
+                    $rules[] = 'ngeng -> hapus';
+                    return $__kata__;
+                }
+            }
+        }
         if (preg_match('/^(ng)\S{1,}/', $kata)) {
             if (preg_match('/^(ng)\S{1,}/', $kata)) {
                 $__kata = preg_replace('/^(ng)/', '', $kata);
-                if (TranslateController::cekKamus($__kata)) {
+                if ($this->cekKamus($__kata)) {
                     $awal = str_replace($__kata, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                    $prefix[] = $this->aturan($awal);
                     $rules[] = 'ng -> hapus';
                     return $__kata; // Jika ada balik
                 }
-                $__kata__ = TranslateController::awalan($__kata);
+                $__kata__ = $this->awalan($__kata);
                 //$__kata__ = Del_Derivation_Suffixes($__kata);
-                if (TranslateController::cekKamus($__kata__)) {
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
                     return $__kata__;
                 }
             }
 
             if (preg_match('/^(ng)[aiueo]\S{1,}/', $kata)) {
                 $__kata = preg_replace('/^(ng)/', '', $kata);
-                if (TranslateController::cekKamus($__kata)) {
+                if ($this->cekKamus($__kata)) {
                     $awal = str_replace($__kata, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                    $prefix[] = $this->aturan($awal);
                     $rules[] = 'ng -> hapus';
                     return $__kata;
                 }
-                $__kata__ = TranslateController::awalan($__kata);
-                if (TranslateController::cekKamus($__kata__)) {
+                $__kata__ = $this->awalan($__kata);
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
                     return $__kata__;
                 }
             }
@@ -466,17 +466,17 @@ class TranslateController extends Controller
 
             if (preg_match('/^(be)\S{1,}/', $kata)) {
                 $__kata = preg_replace('/^(be)/', '', $kata);
-                if (TranslateController::cekKamus($__kata)) {
+                if ($this->cekKamus($__kata)) {
                     $awal = str_replace($__kata, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                    $prefix[] = $this->aturan($awal);
                     $rules[] = 'be -> hapus';
                     return $__kata; // Jika ada balik
                 }
-                $__kata__ = TranslateController::awalan($__kata);
+                $__kata__ = $this->awalan($__kata);
                 //$__kata__ = Del_Derivation_Suffixes($__kata);
-                if (TranslateController::cekKamus($__kata__)) {
-                    $awal = str_replace($__kata, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
                     $rules[] = 'ber -> hapus';
                     return $__kata__;
                 }
@@ -484,12 +484,14 @@ class TranslateController extends Controller
 
             if (preg_match('/^(ber)\S{1,}/', $kata)) {
                 $__kata = preg_replace('/^(ber)/', '', $kata);
-                if (TranslateController::cekKamus($__kata)) {
+                if ($this->cekKamus($__kata)) {
                     $rules[] = 'ber -> hapus';
                     return $__kata;
                 }
-                $__kata__ = TranslateController::awalan($__kata);
-                if (TranslateController::cekKamus($__kata__)) {
+                $__kata__ = $this->awalan($__kata);
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
                     return $__kata__;
                 }
             }
@@ -500,165 +502,167 @@ class TranslateController extends Controller
 
             if (preg_match('/^(de)\S{1,}/', $kata)) {
                 $__kata = preg_replace('/^(de)/', '', $kata);
-                if (TranslateController::cekKamus($__kata)) {
+                if ($this->cekKamus($__kata)) {
                     $awal = str_replace($__kata, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                    $prefix[] = $this->aturan($awal);
                     $rules[] = 'de -> hapus';
                     return $__kata; // Jika ada balik
                 }
-                $__kata__ = TranslateController::awalan($__kata);
+                $__kata__ = $this->awalan($__kata);
                 //$__kata__ = Del_Derivation_Suffixes($__kata);
-                if (TranslateController::cekKamus($__kata__)) {
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
                     return $__kata__;
                 }
             }
         }
         //End AWALAN BE
 
-        //================================================= TranslateController::awalan PE =================================================//	
+        //================================================= $this->awalan PE =================================================//	
         if (preg_match('/^(pe)\S{1,}/', $kata)) {
 
             if (preg_match('/^(peng)[aiueo]\S{1,}/', $kata)) {
                 $__kata = preg_replace('/^(peng)/', '', $kata);
-                if (TranslateController::cekKamus($__kata)) {
+                if ($this->cekKamus($__kata)) {
                     $rules[] = 'peng -> hapus';
                     $awal = str_replace($__kata, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                    $prefix[] = $this->aturan($awal);
                     return $__kata; // Jika ada balik
                 }
-                $__kata__ = TranslateController::awalan($__kata);
+                $__kata__ = $this->awalan($__kata);
                 //$__kata__ = Del_Derivation_Suffixes($__kata);
-                if (TranslateController::cekKamus($__kata__)) {
-                    $awal = str_replace($__kata__, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata__, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
                     return $__kata__;
                 }
             }
 
             if (preg_match('/^(peng)[u]\S{1,}/', $kata)) {
                 $__kata = preg_replace('/^(peng)/', 'k', $kata);
-                if (TranslateController::cekKamus($__kata)) {
+                if ($this->cekKamus($__kata)) {
                     $awal = str_replace($__kata, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                    $prefix[] = $this->aturan($awal);
                     $rules[] = 'peng -> hapus';
                     return $__kata;
                 }
-                $__kata__ = TranslateController::awalan($__kata);
-                if (TranslateController::cekKamus($__kata__)) {
-                    $awal = str_replace($__kata__, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                $__kata__ = $this->awalan($__kata);
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata__, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
                     return $__kata__;
                 }
             }
 
             if (preg_match('/^(peng)\S{1,}/', $kata)) {
                 $__kata = preg_replace('/^(peng)/', '', $kata);
-                if (TranslateController::cekKamus($__kata)) {
+                if ($this->cekKamus($__kata)) {
                     $awal = str_replace($__kata, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                    $prefix[] = $this->aturan($awal);
                     $rules[] = 'peng -> hapus';
                     return $__kata;
                 }
-                $__kata__ = TranslateController::awalan($__kata);
-                if (TranslateController::cekKamus($__kata__)) {
-                    $awal = str_replace($__kata__, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                $__kata__ = $this->awalan($__kata);
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata__, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
                     return $__kata__;
                 }
             }
 
             if (preg_match('/^(pem)[aiueo]\S{1,}/', $kata)) {
                 $__kata = preg_replace('/^(pem)/', 'p', $kata);
-                if (TranslateController::cekKamus($__kata)) {
+                if ($this->cekKamus($__kata)) {
                     $awal = str_replace($__kata, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                    $prefix[] = $this->aturan($awal);
                     $rules[] = 'pem -> hapus';
                     return $__kata;
                 }
-                $__kata__ = TranslateController::awalan($__kata);
-                if (TranslateController::cekKamus($__kata__)) {
-                    $awal = str_replace($__kata__, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                $__kata__ = $this->awalan($__kata);
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata__, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
                     return $__kata__;
                 }
             }
 
             if (preg_match('/^(pem)\S{1,}/', $kata)) {
                 $__kata = preg_replace('/^(pem)/', '', $kata);
-                if (TranslateController::cekKamus($__kata)) {
+                if ($this->cekKamus($__kata)) {
                     $awal = str_replace($__kata, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                    $prefix[] = $this->aturan($awal);
                     $rules[] = 'pem -> hapus';
                     return $__kata;
                 }
-                $__kata__ = TranslateController::awalan($__kata);
-                if (TranslateController::cekKamus($__kata__)) {
-                    $awal = str_replace($__kata__, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                $__kata__ = $this->awalan($__kata);
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata__, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
                     return $__kata__;
                 }
             }
 
             if (preg_match('/^(pe)[lmrswtkn]\S{1,}/', $kata)) {
                 $__kata = preg_replace('/^(pe)/', '', $kata);
-                if (TranslateController::cekKamus($__kata)) {
+                if ($this->cekKamus($__kata)) {
                     $awal = str_replace($__kata, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                    $prefix[] = $this->aturan($awal);
                     $rules[] = 'pe -> hapus';
                     return $__kata;
                 }
-                $__kata__ = TranslateController::awalan($__kata);
-                if (TranslateController::cekKamus($__kata__)) {
-                    $awal = str_replace($__kata__, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                $__kata__ = $this->awalan($__kata);
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata__, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
                     return $__kata__;
                 }
             }
 
             if (preg_match('/^(pen)[aiueo]\S{1,}/', $kata)) {
                 $__kata = preg_replace('/^(pen)/', 't', $kata);
-                if (TranslateController::cekKamus($__kata)) {
+                if ($this->cekKamus($__kata)) {
                     $awal = str_replace($__kata, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                    $prefix[] = $this->aturan($awal);
                     $rules[] = 'pen -> hapus';
                     return $__kata;
                 }
-                $__kata__ = TranslateController::awalan($__kata);
-                if (TranslateController::cekKamus($__kata__)) {
-                    $awal = str_replace($__kata__, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                $__kata__ = $this->awalan($__kata);
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata__, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
                     return $__kata__;
                 }
             }
 
             if (preg_match('/^(pen)\S{1,}/', $kata)) {
                 $__kata = preg_replace('/^(pen)/', '', $kata);
-                if (TranslateController::cekKamus($__kata)) {
+                if ($this->cekKamus($__kata)) {
                     $awal = str_replace($__kata, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                    $prefix[] = $this->aturan($awal);
                     $rules[] = 'pen -> hapus';
                     return $__kata;
                 }
-                $__kata__ = TranslateController::awalan($__kata);
-                if (TranslateController::cekKamus($__kata__)) {
-                    $awal = str_replace($__kata__, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                $__kata__ = $this->awalan($__kata);
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata__, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
                     return $__kata__;
                 }
             }
 
             if (preg_match('/^(peny)[aiueo]\S{1,}/', $kata)) {
                 $__kata = preg_replace('/^(peny)/', 's', $kata);
-                if (TranslateController::cekKamus($__kata)) {
+                if ($this->cekKamus($__kata)) {
                     $awal = str_replace($__kata, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                    $prefix[] = $this->aturan($awal);
                     $rules[] = 'peny -> hapus';
                     return $__kata;
                 }
-                $__kata__ = TranslateController::awalan($__kata);
-                if (TranslateController::cekKamus($__kata__)) {
-                    $awal = str_replace($__kata__, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                $__kata__ = $this->awalan($__kata);
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata__, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
                     return $__kata__;
                 }
             }
@@ -670,17 +674,17 @@ class TranslateController extends Controller
 
             if (preg_match('/^(se)\S{1,}/', $kata)) {
                 $__kata = preg_replace('/^(se)/', '', $kata);
-                if (TranslateController::cekKamus($__kata)) {
+                if ($this->cekKamus($__kata)) {
                     $awal = str_replace($__kata, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                    $prefix[] = $this->aturan($awal);
                     $rules[] = 'se -> hapus';
                     return $__kata; // Jika ada balik
                 }
-                $__kata__ = TranslateController::awalan($__kata);
+                $__kata__ = $this->awalan($__kata);
                 //$__kata__ = Del_Derivation_Suffixes($__kata);
-                if (TranslateController::cekKamus($__kata__)) {
-                    $awal = str_replace($__kata__, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata__, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
                     return $__kata__;
                 }
             }
@@ -692,33 +696,33 @@ class TranslateController extends Controller
 
             if (preg_match('/^(te)\S{1,}/', $kata)) {
                 $__kata = preg_replace('/^(te)/', '', $kata);
-                if (TranslateController::cekKamus($__kata)) {
+                if ($this->cekKamus($__kata)) {
                     $awal = str_replace($__kata, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                    $prefix[] = $this->aturan($awal);
                     $rules[] = 'te -> hapus';
                     return $__kata; // Jika ada balik
                 }
-                $__kata__ = TranslateController::awalan($__kata);
+                $__kata__ = $this->awalan($__kata);
                 //$__kata__ = Del_Derivation_Suffixes($__kata);
-                if (TranslateController::cekKamus($__kata__)) {
-                    $awal = str_replace($__kata__, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata__, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
                     return $__kata__;
                 }
             }
             if (preg_match('/^(ter)\S{1,}/', $kata)) {
                 $__kata = preg_replace('/^(ter)/', '', $kata);
-                if (TranslateController::cekKamus($__kata)) {
+                if ($this->cekKamus($__kata)) {
                     $awal = str_replace($__kata, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                    $prefix[] = $this->aturan($awal);
                     $rules[] = 'ter -> hapus';
                     return $__kata; // Jika ada balik
                 }
-                $__kata__ = TranslateController::awalan($__kata);
+                $__kata__ = $this->awalan($__kata);
                 //$__kata__ = Del_Derivation_Suffixes($__kata);
-                if (TranslateController::cekKamus($__kata__)) {
-                    $awal = str_replace($__kata__, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata__, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
                     return $__kata__;
                 }
             }
@@ -729,17 +733,17 @@ class TranslateController extends Controller
 
             if (preg_match('/^(ku)\S{1,}/', $kata)) {
                 $__kata = preg_replace('/^(ku)/', '', $kata);
-                if (TranslateController::cekKamus($__kata)) {
+                if ($this->cekKamus($__kata)) {
                     $awal = str_replace($__kata, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                    $prefix[] = $this->aturan($awal);
                     $rules[] = 'ku -> hapus';
                     return $__kata; // Jika ada balik
                 }
-                $__kata__ = TranslateController::awalan($__kata);
+                $__kata__ = $this->awalan($__kata);
                 //$__kata__ = Del_Derivation_Suffixes($__kata);
-                if (TranslateController::cekKamus($__kata__)) {
-                    $awal = str_replace($__kata__, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata__, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
                     return $__kata__;
                 }
             }
@@ -750,33 +754,88 @@ class TranslateController extends Controller
 
             if (preg_match('/^(ny)[aiueo]\S{1,}/', $kata)) {
                 $__kata = preg_replace('/^(ny)/', 'c', $kata);
-                if (TranslateController::cekKamus($__kata)) {
+                if ($this->cekKamus($__kata)) {
                     $awal = str_replace($__kata, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                    $prefix[] = $this->aturan($awal);
                     $rules[] = 'ny -> hapus';
                     return $__kata; // Jika ada balik
                 }
-                $__kata__ = TranslateController::awalan($__kata);
+                $__kata__ = $this->awalan($__kata);
                 //$__kata__ = Del_Derivation_Suffixes($__kata);
-                if (TranslateController::cekKamus($__kata__)) {
-                    $awal = str_replace($__kata__, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata__, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
                     return $__kata__;
                 }
             }
             if (preg_match('/^(ny)[aiueo]\S{1,}/', $kata)) {
                 $__kata = preg_replace('/^(ny)/', 's', $kata);
-                if (TranslateController::cekKamus($__kata)) {
+                if ($this->cekKamus($__kata)) {
                     $awal = str_replace($__kata, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                    $prefix[] = $this->aturan($awal);
                     $rules[] = 'ny -> hapus';
                     return $__kata; // Jika ada balik
                 }
-                $__kata__ = TranslateController::awalan($__kata);
+                $__kata__ = $this->awalan($__kata);
                 //$__kata__ = Del_Derivation_Suffixes($__kata);
-                if (TranslateController::cekKamus($__kata__)) {
+                if ($this->cekKamus($__kata__)) {
                     $awal = str_replace($__kata__, '', $kata);
-                    $prefix[] = TranslateController::aturan($awal);
+                    $prefix[] = $this->aturan($awal);
+                    return $__kata__;
+                }
+            }
+        }
+        if (preg_match('/^(m)\S{1,}/', $kata)) {
+
+            if (preg_match('/^(m)[aiueo]\S{1,}/', $kata)) {
+                $__kata = preg_replace('/^(m)/', 'p', $kata);
+                if ($this->cekKamus($__kata)) {
+                    $awal = str_replace($__kata, '', $kata);
+                    $prefix[] = $this->aturan($awal);
+                    $rules[] = 'm -> hapus';
+                    return $__kata; // Jika ada balik
+                }
+                $__kata__ = $this->awalan($__kata);
+                //$__kata__ = Del_Derivation_Suffixes($__kata);
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata__, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
+                    return $__kata__;
+                }
+            }
+        }
+        //================================================= $this->awalan N- =================================================//
+        if (preg_match('/^(n)\S{1,}/', $kata)) {
+
+            if (preg_match('/^(n)\S{1,}/', $kata)) {
+                $__kata = preg_replace('/^(n)/', '', $kata);
+                if ($this->cekKamus($__kata)) {
+                    $awal = str_replace($__kata, '', $kata);
+                    $prefix[] = $this->aturan($awal);
+                    $rules[] = 'n -> hapus';
+                    return $__kata; // Jika ada balik
+                }
+                $__kata__ = $this->awalan($__kata);
+                //$__kata__ = Del_Derivation_Suffixes($__kata);
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata__, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
+                    return $__kata__;
+                }
+            }
+            if (preg_match('/^(n)[aiueo]\S{1,}/', $kata)) {
+                $__kata = preg_replace('/^(n)/', 't', $kata);
+                if ($this->cekKamus($__kata)) {
+                    $awal = str_replace($__kata, '', $kata);
+                    $prefix[] = $this->aturan($awal);
+                    $rules[] = 'n -> hapus';
+                    return $__kata; // Jika ada balik
+                }
+                $__kata__ = $this->awalan($__kata);
+                //$__kata__ = Del_Derivation_Suffixes($__kata);
+                if ($this->cekKamus($__kata__)) {
+                    $awal = str_replace($__kata__, '', $__kata);
+                    $prefix[] = $this->aturan($awal);
                     return $__kata__;
                 }
             }
