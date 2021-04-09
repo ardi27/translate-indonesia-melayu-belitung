@@ -14,5 +14,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', 'TranslateController@index');
+Route::get('/daftar-kata','DaftarKataController@index');
 Route::get('/proses', 'TranslateController@proses');
+Route::get('/imbuhan','ImbuhanController@index');
 Route::get('/debug', 'TranslateController@debug');
