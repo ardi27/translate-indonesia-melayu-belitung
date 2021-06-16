@@ -22,10 +22,10 @@ class TranslateController extends Controller
         // echo '<b>Kalimat Melayu Riau</b>'."<pre>".print_r($request->kata,true)."</pre>";
         $kalimat = strtolower($request->kata);
 
-        // echo '<b>Proses Case Folding</b>'."<pre>".print_r($kalimat,true)."</pre>";
+        // echo '<b>Proses Case Folding</b>' . "<pre>" . print_r($kalimat, true) . "</pre>";
         $token = explode(" ", $this->simbol($kalimat));
 
-        // echo '<b>proses token</b>'."<pre>".print_r($token,true)."</pre>";
+        // echo '<b>proses token</b>' . "<pre>" . print_r($token, true) . "</pre>";
         //hapus spasi setelah enter
         // for ($j = 0; $j < count($token); $j++) {
         //     if ($token[$j] == "") {
@@ -33,6 +33,10 @@ class TranslateController extends Controller
         //     }
         // }
         //frase
+        // return response()->json([
+        //     'title' => 'Proses Tokenisasi',
+        //     'result' => $token
+        // ]);
         $frasa = Frasa::all();
         $kondisi = [];
         for ($i = 0; $i < count($token); $i++) {
@@ -42,14 +46,13 @@ class TranslateController extends Controller
                 break;
             }
             foreach ($frasa as $f) {
-                $temp = explode(" ", $f->melayu);
+                $temp = explode(" ", $f->belitung);
                 if ($temp[0] == $token[$i]) {
                     if ($temp[1] == $token[$i + 1]) {
                         $token[$i] = $f->indo;
                         array_splice($token, $i + 1, 1);
                         $cek = 1;
-
-                        // echo '<b>Proses Frasa</b>'."<pre>".'<b>kata asal = </b>'.print_r($temp[0].' '.$temp[1],true)."<pre>";
+                        // echo '<b>Proses Frasa</b>' . "<pre>" . '<b>kata asal = </b>' . print_r($temp[0] . ' ' . $temp[1], true) . '<br><b>hasil = </b>' . print_r($token[$i], true) . "<pre>";
                     }
                 }
             }
@@ -82,7 +85,6 @@ class TranslateController extends Controller
 
                     // echo "<pre>".'<b>Hasil = </b>'.print_r($kata['arti'],true)."</pre>";
                 }
-
                 if ($kata['awalan'] == '') {
                     if (preg_match("/[\,\?\.\:\!]/", $kata['arti'])) {
                         $output[count($output) - 1] = substr($output[count($output) - 1], 0, -1);
@@ -91,43 +93,40 @@ class TranslateController extends Controller
                         $output[count($output) - 1] = substr($output[count($output) - 1], 0, -1);
                         $output[] = $kata['arti'] . $kata['akhiran'];
                     } else {
-                        if ($kata['is_basicword'] == null) {
-                            // $leven = [];
-                            // foreach ($data as $row) {
-                            //     $cekKata = [];
-                            //     for ($i = 0; $i < strlen($kata['arti']); $i++) {
-                            //         array_push($cekKata, $kata['arti'][$i]);
-                            //     }
+                        if ($kata['is_basicword'] == false) {
+                            $leven = [];
+                            foreach ($data as $row) {
+                                $cekKata = [];
+                                for ($i = 0; $i < strlen($kata['arti']); $i++) {
+                                    array_push($cekKata, $kata['arti'][$i]);
+                                }
 
-                            //     // // array_splice($cekKata, 0, 0, "*");
-                            //     // // array_push($cekKata, "*");
-                            //     // $cekKata = implode("", $cekKata);
-                            //     // // $cekKata = substr($cekKata, 1,);
-                            //     // dd($cekKata);
-                            //     if ($kata['arti'] != "") {
-                            //         if (levenshtein($kata['arti'], $row->kdNama) < 3) {
-                            //             $cek = 1;
+                                // // array_splice($cekKata, 0, 0, "*");
+                                // // array_push($cekKata, "*");
+                                // $cekKata = implode("", $cekKata);
+                                // // $cekKata = substr($cekKata, 1,);
+                                // dd($cekKata);
+                                if ($kata['arti'] != "") {
+                                    if (levenshtein($kata['arti'], $row->katadasar) < 3) {
+                                        $cek = 1;
+                                        foreach ($cekKata as $char) {
+                                            if (strpos($row->katadasar, $char) === false) {
+                                                $cek = 0;
+                                            }
+                                        }
 
-
-                            //             foreach ($cekKata as $char) {
-                            //                 if (strpos($row->kdNama, $char) === false) {
-                            //                     $cek = 0;
-                            //                 }
-                            //             }
-
-                            //             if ($cek == 1) {
-                            //                 array_push($leven, $row->kdArti);
-                            //             }
-                            //         }
-                            //     }
-                            // }
-                            // // dd($leven);
-                            // if (count($leven) > 0) {
-                            //     $kata['arti'] = $leven[0];
-                            // }  
-                            // echo '<b>proses Leven</b>'."<pre>".print_r($leven,true)."</pre>";
+                                        if ($cek == 1) {
+                                            array_push($leven, $row->arti_kata);
+                                        }
+                                    }
+                                }
+                            }
+                            // dd($leven);
+                            if (count($leven) > 0) {
+                                $kata['arti'] = $leven[0];
+                            }
+                            // echo '<b>proses Leven</b>' . "<pre>" . print_r($leven, true) . "</pre>";
                         }
-
                         $output[] = $kata['arti'] . $kata['akhiran'] . " ";
                     }
                 } else if ($kata['akhiran'] == '') {
@@ -139,16 +138,17 @@ class TranslateController extends Controller
                     //$output = $kata;
                 }
                 $j++;
-                // echo '<b>Proses Stemming</b>'."<pre>".print_r($kata,true)."</pre>";     
+                // echo '<b>Proses Stemming</b>' . "<pre>" . print_r($kata, true) . "</pre>";
             }
         } else {
             $output[] = "Terjemahan Bahasa Indonesia";
         }
-        // dd($kata);
-
-
-        // echo '<b>Proses Terjemahan</b>'."<pre>".print_r(implode(' ',$output),true)."</pre>";
-        return response()->json($output);
+        echo '<b>Proses Terjemahan</b>' . "<pre>" . print_r(implode(' ', $output), true) . "</pre>";
+        // return response()->json([
+        //     'title' => 'Proses Terjemahan',
+        //     'result' => implode('', $output)
+        // ]);
+        // return response()->json($output);
     }
 
     function simbol($data)

@@ -11,8 +11,15 @@ class ApiController extends Controller
     //
     public function index(Request $request)
     {
-        $kataDasar = Kata_Dasar::orderBy('katadasar', 'ASC')->paginate(10);
-        return response()->json(['message' => 'success', 'data' => $kataDasar], 200);
+        $huruf = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
+        $kataDasar = [];
+        $output = [];
+        for ($i = 0; $i < count($huruf); $i++) {
+            $kataDasar[$i] = Kata_Dasar::orderBy('katadasar', 'ASC')->where('katadasar', 'like', $huruf[$i] . '%')->count();
+            $output[$i] = [$huruf[$i] => $kataDasar[$i]];
+        }
+        $total = Kata_Dasar::count();
+        return response()->json(['message' => 'success', 'data' => $output, 'total' => $total], 200);
     }
     public function store(Request $request)
     {
