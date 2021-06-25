@@ -138,7 +138,7 @@ class TranslateController extends Controller
                     //$output = $kata;
                 }
                 $j++;
-                // echo '<b>Proses Stemming</b>' . "<pre>" . print_r($kata, true) . "</pre>";
+                echo '<b>Proses Stemming</b>' . "<pre>" . print_r($kata, true) . "</pre>";
             }
         } else {
             $output[] = "Terjemahan Bahasa Indonesia";
