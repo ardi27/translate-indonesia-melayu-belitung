@@ -26,3 +26,8 @@ Route::prefix('imbuhan')->group(function () {
     Route::post('/tambah', 'ImbuhanController@store');
 });
 Route::get('/debug', 'TranslateController@debug');
+Route::get('/konfigurasi', 'KonfigurasiController@index');
+Route::post('/konfigurasi/{id}', 'KonfigurasiController@setKonfigurasi');
+Route::get('/env', function () {
+    echo env('DB_USERNAME');
+});

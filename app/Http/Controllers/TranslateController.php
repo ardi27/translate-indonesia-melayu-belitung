@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Kata_Dasar;
 use App\Aturan;
 use App\Frasa;
+use App\Konfigurasi;
 
 class TranslateController extends Controller
 {
@@ -18,7 +19,7 @@ class TranslateController extends Controller
     public function Proses(Request $request)
     {
         //proses tokenisasi
-
+        $konfigurasi = Konfigurasi::where('id', '=', '0')->first();
         // echo '<b>Kalimat Melayu Riau</b>'."<pre>".print_r($request->kata,true)."</pre>";
         $kalimat = strtolower($request->kata);
 
@@ -93,7 +94,7 @@ class TranslateController extends Controller
                         $output[count($output) - 1] = substr($output[count($output) - 1], 0, -1);
                         $output[] = $kata['arti'] . $kata['akhiran'];
                     } else {
-                        if ($kata['is_basicword'] == false) {
+                        if ($kata['is_basicword'] == false && $konfigurasi->leven == '1') {
                             $leven = [];
                             foreach ($data as $row) {
                                 $cekKata = [];
@@ -138,17 +139,17 @@ class TranslateController extends Controller
                     //$output = $kata;
                 }
                 $j++;
-                echo '<b>Proses Stemming</b>' . "<pre>" . print_r($kata, true) . "</pre>";
+                // echo '<b>Proses Stemming</b>' . "<pre>" . print_r($kata, true) . "</pre>";
             }
         } else {
             $output[] = "Terjemahan Bahasa Indonesia";
         }
-        echo '<b>Proses Terjemahan</b>' . "<pre>" . print_r(implode(' ', $output), true) . "</pre>";
+        // echo '<b>Proses Terjemahan</b>' . "<pre>" . print_r(implode(' ', $output), true) . "</pre>";
         // return response()->json([
         //     'title' => 'Proses Terjemahan',
         //     'result' => implode('', $output)
         // ]);
-        // return response()->json($output);
+        return response()->json($output);
     }
 
     function simbol($data)
