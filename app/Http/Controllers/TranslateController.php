@@ -259,9 +259,10 @@ class TranslateController extends Controller
             }
 
             $prefix = implode('', $prefix);
-            if ((strpos($prefix, 'pen') == 2 || $prefix == 'pen') && $basicWords[$kata][0] == 't') {
+            if ((strpos($prefix, 'pe') == 2 || $prefix == 'pe') && $basicWords[$kata][0] == 't') {
                 # code...
-                return array('awalan' => $prefix, 'akhiran' => $suffix, 'kata' => $kataAsal, 'result' => $kata, 'rules' => $rules, 'is_basicword' => true, 'arti' => substr($basicWords[$kata], 1));
+                $prefix = $prefix . 'r';
+                return array('awalan' => $prefix, 'akhiran' => $suffix, 'kata' => $kataAsal, 'result' => $kata, 'rules' => $rules, 'is_basicword' => true, 'arti' => $basicWords[$kata]);
             } else if ($prefix == "meng" && $basicWords[$kata][0] == 'k') {
                 # code...
                 return array('awalan' => $prefix, 'akhiran' => $suffix, 'kata' => $kataAsal, 'result' => $kata, 'rules' => $rules, 'is_basicword' => true, 'arti' => substr($basicWords[$kata], 1));

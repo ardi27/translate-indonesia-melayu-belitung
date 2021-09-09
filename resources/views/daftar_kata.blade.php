@@ -34,8 +34,7 @@
                                 <td>{{$kata->katadasar}}</td>
                                 <td>{{$kata->arti_kata}}</td>
                                 <td>
-                                    <button class="btn btn-warning text-white"
-                                        onclick="showModal({{json_encode($kata)}})">
+                                    <button class="btn btn-warning text-white" onclick="showModal({{json_encode($kata)}})">
                                         Update
                                     </button>
                                 </td>
@@ -52,8 +51,7 @@
 
 
 <!-- Modal -->
-<div class="modal fade" id="modalUpdate" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
-    aria-hidden="true">
+<div class="modal fade" id="modalUpdate" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
     <form action="" id="formUpdate" method="POST">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
@@ -66,13 +64,11 @@
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="exampleInputEmail1">Kata Asli</label>
-                        <input type="text" required class="form-control" name="katadasar" id="formKataAsli"
-                            aria-describedby="emailHelp" placeholder="Masukkan Kata Asli">
+                        <input type="text" required class="form-control" name="katadasar" id="formKataAsli" aria-describedby="emailHelp" placeholder="Masukkan Kata Asli">
                     </div>
                     <div class="form-group">
                         <label for="exampleInputEmail1">Terjemahan</label>
-                        <input type="text" required class="form-control" name="arti_kata" id="formTerjemahan"
-                            aria-describedby="emailHelp" placeholder="Masukkan Terjemahan">
+                        <input type="text" required class="form-control" name="arti_kata" id="formTerjemahan" aria-describedby="emailHelp" placeholder="Masukkan Terjemahan">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -86,22 +82,23 @@
 @endsection
 @section('script')
 <script>
-    $(document).ready( function () {
-    $('#data-table').DataTable();
-}
-);
- function showModal(json){
-    if(json==null||json==""){
-        document.getElementById('title').innerText=`Tambah Kata Dasar`;
-        document.getElementById('formUpdate').action=`{{url('daftar-kata/tambah')}}`;
-        $("#modalUpdate").modal();
-    }else{
-    document.getElementById('title').innerText=`Ubah ${json.katadasar}`;
-    document.getElementById('formKataAsli').value=json.katadasar;
-    document.getElementById('formTerjemahan').value=json.arti_kata;
-    document.getElementById('formUpdate').action=`{{url('daftar-kata/update/${json.id_katadasar}')}}`;
-    $("#modalUpdate").modal();
-    }
+    $(document).ready(function() {
+        $('#data-table').DataTable();
+    });
+
+    function showModal(json) {
+        if (json == null || json == "") {
+            document.getElementById('title').innerText = `Tambah Kata Dasar`;
+            document.getElementById('formUpdate').action = `{{url('daftar-kata/tambah')}}`;
+            $("#modalUpdate").modal();
+        } else {
+            document.getElementById('title').innerText = `Ubah ${json.katadasar}`;
+            document.getElementById('formKataAsli').value = json.katadasar;
+            document.getElementById('formTerjemahan').value = json.arti_kata;
+            document.getElementById('formUpdate').action = `{{url('daftar-kata/update/${json.id_katadasar}')}}`;
+            $("#modalUpdate").modal();
+
+        }
     }
 </script>
 @endsection
